@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const { connection } = require("../db/database.js");
 
 const register = async (request, h) => {
-  const { username, password } = request.payload;
+  const { username, password, confirmpassword } = request.payload;
 
   try {
     // Cek apakah username sudah ada
@@ -23,15 +23,19 @@ const register = async (request, h) => {
       return h.response("Username sudah digunakan").code(400);
     }
 
+    if (password != confirmpassword) {
+      return h.response("Password harus sama");
+    }
+
     // Hash password dan simpan user baru
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const insertQueryString =
-      "INSERT INTO users (username, password) VALUES (?, ?)";
+      "INSERT INTO users (username, password, confirmpassword) VALUES (?, ?)";
     await new Promise((resolve, reject) => {
       connection.query(
         insertQueryString,
-        [username, hashedPassword],
+        [username, hashedPassword, confirmpassword],
         (err, results) => {
           if (err) {
             reject(err);
